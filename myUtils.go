@@ -104,7 +104,7 @@ func WaitUntilFileExists(filePath string, duration string) error {
 	)
 
 	if duration == "" {
-		err == errors.New("Empty duration string passed to function")
+		err = errors.New("Empty duration string passed to function")
 
 		return err
 	}
