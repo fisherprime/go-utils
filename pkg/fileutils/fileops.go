@@ -1,34 +1,17 @@
-// Package myUtils provides utility fuctions common to myself
-package myUtils
+// Package fileutils provides file utility functions common to myself.
+// File modification operations.
+package fileutils
 
 import (
 	"errors"
 	"fmt"
 	"log"
-	"net/http"
 	"os"
 	"path/filepath"
 	"time"
 
-	"github.com/joomcode/errorx"
+	"gitlab.com/fisherprime/myutils/pkg/errorutils"
 )
-
-// GetFileContentType retreives the content-type of a file from it's first 512
-// bytes.
-func GetFileContentType(out *os.File) (string, error) {
-	// Only the first 512 bytes are used to sniff the content type.
-	buffer := make([]byte, 512)
-
-	_, err := out.Read(buffer)
-	if CheckError("[!] Could not get file content-type, ", err) {
-		return "", err
-	}
-
-	// content-type by returning "application/octet-stream" if no others seemed to match.
-	contentType := http.DetectContentType(buffer)
-
-	return contentType, nil
-}
 
 // PendFileDelete create a waiting job to delete a file.
 func PendFileDelete(filePath string) {
@@ -46,30 +29,6 @@ func PendFileDelete(filePath string) {
 	log.Println("[+] Deleted file: " + filePath)
 }
 
-// CheckError checks the error variable; if set, prints out the error message
-// appended to a user specified-string --or null-- then returns true, else
-// returns false.
-// The user-specified string says what operation was occurring: Unmarshall
-// MyType struct, Parse thisValue, ...
-func CheckError(message string, err error) bool {
-	if err != nil {
-		log.Println(errorx.Decorate(err, message))
-	}
-
-	return (err != nil)
-}
-
-// CheckErrorFatal checks the error variable, if set prints out the error
-// message appended to a user chosen string --or null-- then exits the
-// application.
-// The user-specified string says what operation was occurring: Unmarshall
-// MyType struct, Parse thisValue, ...
-func CheckErrorFatal(message string, err error) {
-	if err != nil {
-		log.Fatal(errorx.Decorate(err, message))
-	}
-}
-
 // CreateFile creates a file if it doesn't exist.
 func CreateFile(filePath string) {
 	var err error
@@ -79,7 +38,7 @@ func CreateFile(filePath string) {
 	_, err = os.Stat(fileDir)
 	if os.IsNotExist(err) {
 		err := os.MkdirAll(fileDir, 0644)
-		if CheckError(fmt.Sprintf("[!] Error occurred while creating directory hierarchy: %s", fileDir), err) {
+		if errorutils.CheckError(fmt.Sprintf("[!] Error occurred while creating directory hierarchy: %s", fileDir), err) {
 			return
 		}
 	}
@@ -88,7 +47,7 @@ func CreateFile(filePath string) {
 
 	if os.IsNotExist(err) {
 		file, err := os.Create(filePath)
-		if CheckError(fmt.Sprintf("[!] Error occurred while creating file: %s", filePath), err) {
+		if errorutils.CheckError(fmt.Sprintf("[!] Error occurred while creating file: %s", filePath), err) {
 			return
 		}
 
