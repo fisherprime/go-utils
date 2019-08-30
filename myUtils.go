@@ -9,6 +9,8 @@ import (
 	"os"
 	"path/filepath"
 	"time"
+
+	"github.com/joomcode/errorx"
 )
 
 // GetFileContentType retreives the content-type of a file from it's first 512
@@ -45,11 +47,13 @@ func PendFileDelete(filePath string) {
 }
 
 // CheckError checks the error variable; if set, prints out the error message
-// appended to a user specified string --or null-- then returns true, else
+// appended to a user specified-string --or null-- then returns true, else
 // returns false.
+// The user-specified string says what operation was occurring: Unmarshall
+// MyType struct, Parse thisValue, ...
 func CheckError(message string, err error) bool {
 	if err != nil {
-		log.Println(fmt.Sprintf("%s,", message), err)
+		log.Println(errorx.Decorate(err, message))
 	}
 
 	return (err != nil)
@@ -58,9 +62,11 @@ func CheckError(message string, err error) bool {
 // CheckErrorFatal checks the error variable, if set prints out the error
 // message appended to a user chosen string --or null-- then exits the
 // application.
+// The user-specified string says what operation was occurring: Unmarshall
+// MyType struct, Parse thisValue, ...
 func CheckErrorFatal(message string, err error) {
 	if err != nil {
-		log.Fatal(fmt.Sprintf("%s,", message), err)
+		log.Fatal(errorx.Decorate(err, message))
 	}
 }
 
