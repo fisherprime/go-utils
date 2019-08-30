@@ -25,6 +25,10 @@
 #   unused-packages = true
 
 
+[[constraint]]
+  name = "github.com/joomcode/errorx"
+  version = "1.0.0"
+
 [prune]
   go-tests = true
   unused-packages = true
