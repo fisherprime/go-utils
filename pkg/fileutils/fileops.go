@@ -14,23 +14,25 @@ import (
 )
 
 // PendFileDelete create a waiting job to delete a file.
-func PendFileDelete(filePath string) {
+// Takes a filepath & time.Duration:  ("my/cool/path", 2 * time.Second)
+func PendFileDelete(filePath string, duration time.Duration) error {
 	// Check for existing file
 	_, err := os.Stat(filePath)
 	if os.IsNotExist(err) {
 		log.Printf("[!] File does not exist, ", err)
 
-		return
+		return err
 	}
 
-	time.Sleep(120 * time.Second)
+	time.Sleep(duration)
 	os.Remove(filePath)
 
 	log.Println("[+] Deleted file: " + filePath)
+	return nil
 }
 
 // CreateFile creates a file if it doesn't exist.
-func CreateFile(filePath string) {
+func CreateFile(filePath string) error {
 	var err error
 
 	fileDir := filepath.Dir(filePath)
@@ -39,7 +41,7 @@ func CreateFile(filePath string) {
 	if os.IsNotExist(err) {
 		err := os.MkdirAll(fileDir, 0755)
 		if errorutils.CheckError(fmt.Sprintf("Create directory hierarchy: %s", fileDir), err) {
-			return
+			return err
 		}
 	}
 
@@ -47,13 +49,14 @@ func CreateFile(filePath string) {
 	if os.IsNotExist(err) {
 		file, err := os.Create(filePath)
 		if errorutils.CheckError(fmt.Sprintf("Create file: %s", filePath), err) {
-			return
+			return err
 		}
 
 		defer file.Close()
 	}
 
 	log.Printf("[+] Created file: %s\n", filePath)
+	return nil
 }
 
 // WaitUntilFileExists waits for a file to exist before exiting with a nil
