@@ -3,7 +3,6 @@
 package fileutils
 
 import (
-	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -62,26 +61,10 @@ func CreateFile(filePath string) error {
 // WaitUntilFileExists waits for a file to exist before exiting with a nil
 // status, otherwise an error should a user specified duration pass before the
 // file is available.
-// Valid time units: "ns", "us" (or "µs"), "ms", "s", "m", "h"
-// Example duration can be "2m".
-func WaitUntilFileExists(filePath string, duration string) error {
-	var (
-		err            error
-		parsedDuration time.Duration
-	)
-
-	if duration == "" {
-		err = errors.New("Empty duration string passed to function")
-
-		return err
-	}
-
-	parsedDuration, err = time.ParseDuration(duration)
-	if err != nil {
-		return err
-	}
-
-	stop := time.Now().Add(parsedDuration)
+// Example duration: 2 * time.Second
+func WaitUntilFileExists(filePath string, duration time.Duration) error {
+	// Valid time units: "ns", "us" (or "µs"), "ms", "s", "m", "h"
+	stop := time.Now().Add(duration)
 
 	for {
 		_, err := os.Stat(filePath)
