@@ -37,17 +37,16 @@ func CreateFile(filePath string) {
 
 	_, err = os.Stat(fileDir)
 	if os.IsNotExist(err) {
-		err := os.MkdirAll(fileDir, 0644)
-		if errorutils.CheckError(fmt.Sprintf("[!] Error occurred while creating directory hierarchy: %s", fileDir), err) {
+		err := os.MkdirAll(fileDir, 0755)
+		if errorutils.CheckError(fmt.Sprintf("Create directory hierarchy: %s", fileDir), err) {
 			return
 		}
 	}
 
 	_, err = os.Stat(filePath)
-
 	if os.IsNotExist(err) {
 		file, err := os.Create(filePath)
-		if errorutils.CheckError(fmt.Sprintf("[!] Error occurred while creating file: %s", filePath), err) {
+		if errorutils.CheckError(fmt.Sprintf("Create file: %s", filePath), err) {
 			return
 		}
 
