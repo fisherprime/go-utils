@@ -16,7 +16,7 @@ func GetFileContentType(out *os.File) (string, error) {
 	buffer := make([]byte, 512)
 
 	_, err := out.Read(buffer)
-	if errorutils.CheckError("[!] Could not get file content-type, ", err) {
+	if errorutils.CheckError("Obtain file content-type, ", err) {
 		return "", err
 	}
 
