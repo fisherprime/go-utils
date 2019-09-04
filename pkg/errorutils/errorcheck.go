@@ -14,7 +14,13 @@ import (
 // MyType struct, Parse thisValue, ...
 func CheckError(message string, err error) bool {
 	if err != nil {
-		log.Println(errorx.Decorate(err, message))
+		if message != "" {
+			log.Println(errorx.Decorate(err, message))
+
+			return (err != nil)
+		}
+
+		log.Println(err)
 	}
 
 	return (err != nil)
@@ -27,6 +33,10 @@ func CheckError(message string, err error) bool {
 // MyType struct, Parse thisValue, ...
 func CheckErrorFatal(message string, err error) {
 	if err != nil {
-		log.Fatal(errorx.Decorate(err, message))
+		if message != "" {
+			log.Fatal(errorx.Decorate(err, message))
+		}
+
+		log.Fatal(err)
 	}
 }
