@@ -18,8 +18,7 @@ func PendFileDelete(filePath string, duration time.Duration) error {
 	// Check for existing file
 	_, err := os.Stat(filePath)
 	if os.IsNotExist(err) {
-		log.Printf("[!] File does not exist, ", err)
-
+		log.Printf("[!] File does not exist, %v", err)
 		return err
 	}
 
@@ -27,6 +26,7 @@ func PendFileDelete(filePath string, duration time.Duration) error {
 	os.Remove(filePath)
 
 	log.Println("[+] Deleted file: " + filePath)
+
 	return nil
 }
 
@@ -55,6 +55,7 @@ func CreateFile(filePath string) error {
 	}
 
 	log.Printf("[+] Created file: %s\n", filePath)
+
 	return nil
 }
 
