@@ -16,7 +16,6 @@ func CheckError(message string, err error) bool {
 	if err != nil {
 		if message != "" {
 			log.Println(errorx.Decorate(err, message))
-
 			return (err != nil)
 		}
 
