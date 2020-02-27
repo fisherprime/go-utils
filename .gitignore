@@ -1,8 +1,11 @@
+#
+# .gitignore
+#
 
-# Created by https://www.gitignore.io/api/go
-# Edit at https://www.gitignore.io/?templates=go
+# Templates used: Go
 
-### Go ###
+# Go
+# ----
 # Binaries for programs and plugins
 *.exe
 *.exe~
@@ -18,10 +21,4 @@
 
 # Dependency directories (remove the comment below to include it)
 # vendor/
-
-### Go Patch ###
-/vendor/
-/Godeps/
-
-# End of https://www.gitignore.io/api/go
-
+# ----
