@@ -13,7 +13,7 @@ import (
 )
 
 // PendFileDelete create a waiting job to delete a file.
-// Takes a filepath & time.Duration:  ("my/cool/path", 2 * time.Second)
+// Takes a filepath & `time.Duration`: `("my/cool/path", 2 * time.Second)`.
 func PendFileDelete(filePath string, duration time.Duration) error {
 	// Check for existing file
 	_, err := os.Stat(filePath)
@@ -38,7 +38,7 @@ func CreateFile(filePath string) error {
 
 	_, err = os.Stat(fileDir)
 	if os.IsNotExist(err) {
-		err := os.MkdirAll(fileDir, 0755)
+		err = os.MkdirAll(fileDir, 0755)
 		if errorutils.CheckError(fmt.Sprintf("Create directory hierarchy: %s", fileDir), err) {
 			return err
 		}
@@ -50,7 +50,6 @@ func CreateFile(filePath string) error {
 		if errorutils.CheckError(fmt.Sprintf("Create file: %s", filePath), err) {
 			return err
 		}
-
 		defer file.Close()
 	}
 
@@ -62,7 +61,7 @@ func CreateFile(filePath string) error {
 // WaitUntilFileExists waits for a file to exist before exiting with a nil
 // status, otherwise an error should a user specified duration pass before the
 // file is available.
-// Example duration: 2 * time.Second
+// Example duration: `2 * time.Second`.
 func WaitUntilFileExists(filePath string, duration time.Duration) error {
 	// Valid time units: "ns", "us" (or "µs"), "ms", "s", "m", "h"
 	stop := time.Now().Add(duration)
