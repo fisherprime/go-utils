@@ -5,23 +5,19 @@ package fileutils
 import (
 	"net/http"
 	"os"
-
-	"gitlab.com/fisherprime/myutils/pkg/errorutils"
 )
 
 // GetFileContentType retreives the content-type of a file from it's first 512
 // bytes.
-func GetFileContentType(out *os.File) (string, error) {
+func GetFileContentType(out *os.File) (contentType string, err error) {
 	// Only the first 512 bytes are used to sniff the content type.
 	buffer := make([]byte, 512)
-
-	_, err := out.Read(buffer)
-	if errorutils.CheckError("Obtain file content-type, ", err) {
-		return "", err
+	if _, err = out.Read(buffer); err != nil {
+		return
 	}
 
 	// content-type by returning "application/octet-stream" if no others seemed to match.
-	contentType := http.DetectContentType(buffer)
+	contentType = http.DetectContentType(buffer)
 
-	return contentType, nil
+	return
 }
