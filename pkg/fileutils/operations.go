@@ -60,7 +60,7 @@ func CreateFile(filePath string) (err error) {
 		}
 	}
 
-	log.Info("Created file: %s\n", filePath)
+	log.Infof("Created file: %s\n", filePath)
 
 	return nil
 }
