@@ -21,24 +21,33 @@ var (
 // PendFileDelete creates a waiting job to delete a file.
 //
 // Deprecated: Takes a filepath & `time.Duration`: `("my/cool/path", 2 * time.Second)`.
-func PendFileDelete(_ context.Context, filePath string, duration time.Duration) (err error) {
-	// Check for existing file
-	if _, err = os.Stat(filePath); err != nil {
-		/* if os.IsNotExist(err) {
-		 *     log.Printf("file does not exist, %v", err)
-		 *     return
-		 * } */
-
+func PendFileDelete(ctx context.Context, filePath string, duration time.Duration) (err error) {
+	if filePath, err = filepath.Abs(filePath); err != nil {
 		return
 	}
 
-	t := time.NewTimer(duration)
-	<-t.C
-	if err = os.Remove(filePath); err != nil {
-		return
-	}
+	select {
+	case <-ctx.Done():
+		err = ctx.Err()
+	default:
+		// Check for existing file
+		if _, err = os.Stat(filePath); err != nil {
+			/* if os.IsNotExist(err) {
+			 *     log.Printf("file does not exist, %v", err)
+			 *     return
+			 * } */
 
-	// log.Println("deleted file: " + filePath)
+			return
+		}
+
+		t := time.NewTimer(duration)
+		<-t.C
+		if err = os.Remove(filePath); err != nil {
+			return
+		}
+
+		// log.Println("deleted file: " + filePath)
+	}
 
 	return
 }
@@ -55,7 +64,6 @@ func CreateFile(ctx context.Context, filePath string) (err error) {
 	case <-ctx.Done():
 		err = ctx.Err()
 	default:
-
 		fileDir := filepath.Dir(filePath)
 
 		if _, err = os.Stat(fileDir); err != nil {
@@ -85,36 +93,6 @@ func CreateFile(ctx context.Context, filePath string) (err error) {
 		// log.Printf("created file: %s\n", filePath)
 	}
 
-=======
-	fileDir := filepath.Dir(filePath)
-
-	if _, err = os.Stat(fileDir); err != nil {
-		if !os.IsNotExist(err) {
-			return
-		}
-
-		if err = os.MkdirAll(fileDir, 0755); err != nil {
-			err = fmt.Errorf("%w: %v", ErrCreateDirHierarchy, err)
-			return
-		}
-	}
-
-	if _, err = os.Stat(filePath); err != nil {
-		if !os.IsNotExist(err) {
-			return
-		}
-
-		var file *os.File
-		if file, err = os.Create(filePath); err != nil {
-			err = fmt.Errorf("%w: %v", ErrCreateFile, err)
-			return
-		}
-		err = file.Close()
-	}
-
-	// log.Printf("created file: %s\n", filePath)
-
->>>>>>> 19e9fc1ce4f43ce1574a95a41774f257ab3c35bb
 	return
 }
 
