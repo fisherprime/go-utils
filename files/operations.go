@@ -46,38 +46,44 @@ func PendFileDelete(_ context.Context, filePath string, duration time.Duration) 
 // CreateFile creates a file if it doesn't exist.
 //
 // Deprecated: .
-func CreateFile(_ context.Context, filePath string) (err error) {
+func CreateFile(ctx context.Context, filePath string) (err error) {
 	if filePath, err = filepath.Abs(filePath); err != nil {
 		return
 	}
 
-	fileDir := filepath.Dir(filePath)
+	select {
+	case <-ctx.Done():
+		err = ctx.Err()
+	default:
 
-	if _, err = os.Stat(fileDir); err != nil {
-		if !os.IsNotExist(err) {
-			return
+		fileDir := filepath.Dir(filePath)
+
+		if _, err = os.Stat(fileDir); err != nil {
+			if !os.IsNotExist(err) {
+				return
+			}
+
+			if err = os.MkdirAll(fileDir, 0755); err != nil {
+				err = fmt.Errorf("%w: %v", ErrCreateDirHierarchy, err)
+				return
+			}
 		}
 
-		if err = os.MkdirAll(fileDir, 0755); err != nil {
-			err = fmt.Errorf("%w: %v", ErrCreateDirHierarchy, err)
-			return
+		if _, err = os.Stat(filePath); err != nil {
+			if !os.IsNotExist(err) {
+				return
+			}
+
+			var file *os.File
+			if file, err = os.Create(filePath); err != nil {
+				err = fmt.Errorf("%w: %v", ErrCreateFile, err)
+				return
+			}
+			err = file.Close()
 		}
+
+		// log.Printf("created file: %s\n", filePath)
 	}
-
-	if _, err = os.Stat(filePath); err != nil {
-		if !os.IsNotExist(err) {
-			return
-		}
-
-		var file *os.File
-		if file, err = os.Create(filePath); err != nil {
-			err = fmt.Errorf("%w: %v", ErrCreateFile, err)
-			return
-		}
-		err = file.Close()
-	}
-
-	// log.Printf("created file: %s\n", filePath)
 
 	return
 }
