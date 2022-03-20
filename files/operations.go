@@ -85,6 +85,36 @@ func CreateFile(ctx context.Context, filePath string) (err error) {
 		// log.Printf("created file: %s\n", filePath)
 	}
 
+=======
+	fileDir := filepath.Dir(filePath)
+
+	if _, err = os.Stat(fileDir); err != nil {
+		if !os.IsNotExist(err) {
+			return
+		}
+
+		if err = os.MkdirAll(fileDir, 0755); err != nil {
+			err = fmt.Errorf("%w: %v", ErrCreateDirHierarchy, err)
+			return
+		}
+	}
+
+	if _, err = os.Stat(filePath); err != nil {
+		if !os.IsNotExist(err) {
+			return
+		}
+
+		var file *os.File
+		if file, err = os.Create(filePath); err != nil {
+			err = fmt.Errorf("%w: %v", ErrCreateFile, err)
+			return
+		}
+		err = file.Close()
+	}
+
+	// log.Printf("created file: %s\n", filePath)
+
+>>>>>>> 19e9fc1ce4f43ce1574a95a41774f257ab3c35bb
 	return
 }
 
