@@ -20,5 +20,13 @@
 *.out
 
 # Dependency directories (remove the comment below to include it)
-# vendor/
+vendor/
 # ----
+
+build/
+
+assets/sql/dump.sql
+
+debug/
+*.csv
+config-sample.yml
