@@ -9,10 +9,13 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-var (
-	// fLogger is a logrus.FieldLogger used for debug purposes.
-	fLogger logrus.FieldLogger = logrus.NewEntry(logrus.New())
+// Misc constants.
+const (
+	UndefinedUint uint = 0
 )
+
+// fLogger is a logrus.FieldLogger used for debug purposes.
+var fLogger logrus.FieldLogger = logrus.NewEntry(logrus.New())
 
 // Validation errors.
 var (

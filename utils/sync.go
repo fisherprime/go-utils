@@ -1,17 +1,8 @@
-// Package misc implements miscellaneous utilities.
-//
-// SPDX-License-Identifier: MIT
-package misc
+package utils
 
 import (
 	"context"
-	"errors"
 	"fmt"
-)
-
-// Synchronization errors.
-var (
-	ErrInvalidGoroutineCount = errors.New("invalid goroutine count")
 )
 
 // MonitorChannels `error`s & completion status.
@@ -20,28 +11,29 @@ var (
 //
 // Usage:
 //
-//	done, errChan := make(chan bool), make(chan error, defaultChanBufferSize)
-// 	numGoroutines := 5
+//		done, errChan := make(chan bool), make(chan error, defaultChanBufferSize)
+//		numGoroutines := 5
 //
-//  wg := sync.WaitGroup{}
-//  wg.Add(numGoroutines)
+//	 wg := sync.WaitGroup{}
+//	 wg.Add(numGoroutines)
 //
-//	for index :=0; index < numGoroutines; index++ {
+//		for index :=0; index < numGoroutines; index++ {
+//			go func() {
+//				if err := someFunc(); err != nil {errChan <- err}
+//				wg.Done()
+//			}()
+//		}
+//
 //		go func() {
-//			wg.Done()
+//			wg.Wait()
+//
+//			close(done)
+//			close(errChan)
 //		}()
-//	}
 //
-//	go func() {
-//		wg.Wait()
-//
-//		close(done)
-//		close(errChan)
-//	}()
-//
-//	if err := types.MonitorChannels(ctx, numGoroutines, done, errChan, "error prefix"); err != nil {
-//		return err
-//	}
+//		if err := utils.MonitorChannels(ctx, numGoroutines, done, errChan, "error prefix"); err != nil {
+//			return err
+//		}
 func MonitorChannels(ctx context.Context, operations int, done chan bool, errChan chan error, errPrefix string) (err error) {
 	if operations < 1 {
 		err = fmt.Errorf("%s %w: %d", errPrefix, ErrInvalidGoroutineCount, operations)

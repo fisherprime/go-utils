@@ -11,6 +11,10 @@ import (
 	"time"
 )
 
+const (
+	defaultPerm = 0o600
+)
+
 // File operation errors.
 var (
 	ErrFailedToOpenFile   = errors.New("failed to open file")
@@ -71,7 +75,7 @@ func CreateFile(ctx context.Context, filePath string) (err error) {
 				return
 			}
 
-			if err = os.MkdirAll(fileDir, 0755); err != nil {
+			if err = os.MkdirAll(fileDir, 0o755); err != nil {
 				err = fmt.Errorf("%w: %v", ErrCreateDirHierarchy, err)
 				return
 			}
@@ -127,8 +131,9 @@ func WaitUntilFileExists(ctx context.Context, filePath string) (err error) {
 }
 
 // OverwriteFile overwrites the contents of a file with the supplied data.
-func OverwriteFile(ctx context.Context, filePath string, data []byte) (err error) {
-	if filePath, err = filepath.Abs(filePath); err != nil {
+func OverwriteFile(ctx context.Context, path string, data []byte) (err error) {
+	outputPath, err := filepath.Abs(path)
+	if err != nil {
 		return
 	}
 
@@ -137,10 +142,9 @@ func OverwriteFile(ctx context.Context, filePath string, data []byte) (err error
 		err = ctx.Err()
 	default:
 		var file *os.File
-
-		// nolint: gosec // "G304" is sorted out by `filepath.Abs`.
-		if file, err = os.OpenFile(filePath, os.O_CREATE|os.O_RDWR, 0600); err != nil {
-			err = fmt.Errorf("%w %s: %v", ErrFailedToOpenFile, filePath, err)
+		// nolint: gosec // "G304" is sorted out by filepath.Abs.
+		if file, err = os.OpenFile(outputPath, os.O_CREATE|os.O_RDWR|os.O_TRUNC, defaultPerm); err != nil {
+			err = fmt.Errorf("%w (%s)", err, outputPath)
 			return
 		}
 
@@ -164,7 +168,7 @@ func ReadFile(ctx context.Context, filePath string) (b []byte, err error) {
 		var file *os.File
 
 		// nolint: gosec // "G304" is sorted out by `filepath.Abs`.
-		if file, err = os.OpenFile(filePath, os.O_RDONLY, 0600); err != nil {
+		if file, err = os.OpenFile(filePath, os.O_RDONLY, 0o600); err != nil {
 			err = fmt.Errorf("%w %s: %v", ErrFailedToOpenFile, filePath, err)
 			return
 		}

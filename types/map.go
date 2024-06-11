@@ -2,139 +2,175 @@
 package types
 
 import (
+	"bytes"
+	"context"
+	"encoding/base64"
+	"encoding/gob"
 	"errors"
 	"fmt"
 	"reflect"
 )
 
 type (
-	// Map wraps the map[string]interface{} type.
-	//
-	// This replicates functionality in sync.Map without synchronization.
-	// Not safe for concurrent use.
-	Map map[string]interface{}
+	// Map is a wrapper on the map[string]interface{} type.
+	Map map[string]any
 )
 
 const (
-	// ReadErrFmt defines the format string for failure to read data.
+	// ReadErrFmt defines the format for errors reading a value.
 	ReadErrFmt = "failed to read (%s): %w"
+	mapErrFmt  = "map %w: %s"
 )
 
-// Type related errors.
+// Type errors.
 var (
-	ErrInvalidType = errors.New("invalid data type")
+	ErrUndefinedValue = errors.New("undefined value")
+	ErrInvalidType    = errors.New("invalid data type")
 )
 
-// Store value to Map.
-func (a *Map) Store(key string, value interface{}) { (*a)[key] = value }
+// ReadClaimsErrFmt defines the format for the ErrMissingClaims message.
+var ReadClaimsErrFmt = "failed to read claims (%s): %w"
+
+// Add value to Map.
+func (a *Map) Add(key string, val any) { (*a)[key] = val }
 
 // Delete from Map.
 func (a *Map) Delete(key string) { delete((*a), key) }
 
 // Load from Map.
-func (a *Map) Load(key string) (out interface{}, ok bool) {
-	if out = (*a)[key]; out != nil {
-		ok = true
+func (a *Map) Load(key string) (val any, ok bool) {
+	val, ok = (*a)[key]
+	return
+}
+
+// Get value from Map.
+//
+// Implements the authboss.ClientState interface.
+func (a *Map) Get(key string) (out string, ok bool) {
+	val, ok := (*a)[key]
+	if ok {
+		out = fmt.Sprint(val)
 	}
 
 	return
 }
 
-// LoadAndDelete from Map.
-func (a *Map) LoadAndDelete(key string) (value interface{}, loaded bool) {
-	if value = (*a)[key]; value != nil {
-		loaded = true
-		a.Delete(key)
-	}
-
+// LoadInterface from Map.
+func (a *Map) LoadInterface(key string) (out any, ok bool) {
+	out, ok = (*a)[key]
 	return
 }
 
-// LoadOrStore key,value pair to Map.
-func (a *Map) LoadOrStore(key string, value interface{}) (actual interface{}, loaded bool) {
-	if actual, loaded = a.Load(key); loaded {
-		return
-	}
-	a.Store(key, value)
-
-	return
-}
-
-// LoadString from the Map.
-func (a *Map) LoadString(key string) (strVal string, err error) {
-	if val, ok := (*a)[key]; ok {
-		if strVal, ok = val.(string); !ok {
-			err = fmt.Errorf(ReadErrFmt, key, ErrInvalidType)
+// LoadString …from Map.
+func (a *Map) LoadString(key string, nullable ...bool) (val string, err error) {
+	tmp, ok := (*a)[key]
+	if !ok || tmp == nil {
+		if len(nullable) < 1 || !nullable[0] {
+			err = fmt.Errorf(mapErrFmt, ErrUndefinedValue, key)
 		}
-	}
-
-	return
-}
-
-// LoadInt from the Map.
-func (a *Map) LoadInt(key string) (value int, err error) {
-	if val, ok := (*a)[key]; ok {
-		var id float64
-		if id, ok = val.(float64); !ok {
-			err = fmt.Errorf(ReadErrFmt, key, ErrInvalidType)
-			return
-		}
-		value = int(id)
-	}
-
-	return
-}
-
-// LoadlUint from the Map.
-func (a *Map) LoadlUint(key string) (value uint, ok bool, err error) {
-	var val interface{}
-	if val, ok = (*a)[key]; ok {
-		// Handle frontend requests.
-		var id float64
-		if id, ok = val.(float64); !ok {
-			// Handle authorization claims.
-			if value, ok = val.(uint); !ok {
-				err = fmt.Errorf(ReadErrFmt, key, ErrInvalidType)
-				return
-			}
-			return
-		}
-		value = uint(id)
-	}
-
-	return
-}
-
-// LoadBool from the Map.
-func (a *Map) LoadBool(key string) (value bool, err error) {
-	if val, ok := (*a)[key]; ok {
-		if value, ok = val.(bool); !ok {
-			err = fmt.Errorf(ReadErrFmt, key, ErrInvalidType)
-		}
-	}
-
-	return
-}
-
-// LoadStringSlice obtains an []interface{} from the Map.
-func (a *Map) LoadStringSlice(fieldName string) (value StringSlice, err error) {
-	val, ok := (*a)[fieldName]
-	if !ok || val == nil {
 		return
 	}
 
-	fLogger.Debugf("[]string field: %s, type: %v, value: %v", fieldName, reflect.TypeOf(val), reflect.ValueOf(val))
+	if val, ok = tmp.(string); !ok {
+		err = fmt.Errorf(ReadErrFmt, key, ErrInvalidType)
+	}
 
-	var iSlice []interface{}
-	if iSlice, ok = val.([]interface{}); !ok {
-		err = fmt.Errorf(ReadErrFmt, fieldName, ErrInvalidType)
+	return
+}
+
+// LoadInt from Map.
+func (a *Map) LoadInt(key string, nullable ...bool) (val int, err error) {
+	tmp, ok := (*a)[key]
+	if !ok || tmp == nil {
+		if len(nullable) < 1 || !nullable[0] {
+			err = fmt.Errorf(mapErrFmt, ErrUndefinedValue, key)
+		}
 		return
 	}
 
-	value = make(StringSlice, len(iSlice))
+	if val, ok = tmp.(int); ok {
+		return
+	}
+
+	// Handle frontend requests.
+	var id float64
+	if id, ok = tmp.(float64); !ok {
+		err = fmt.Errorf(ReadErrFmt, key, ErrInvalidType)
+		return
+	}
+	val = int(id)
+
+	return
+}
+
+// LoadUint from Map.
+func (a *Map) LoadUint(key string, nullable ...bool) (val uint, err error) {
+	tmp, ok := (*a)[key]
+	if !ok || tmp == nil {
+		if len(nullable) < 1 || !nullable[0] {
+			err = fmt.Errorf(mapErrFmt, ErrUndefinedValue, key)
+		}
+		return
+	}
+
+	if val, ok = tmp.(uint); ok {
+		return
+	}
+
+	// Handle frontend requests.
+	id, ok := tmp.(float64)
+	if !ok {
+		err = fmt.Errorf(ReadErrFmt, key, ErrInvalidType)
+		return
+	}
+	val = uint(id)
+
+	return
+}
+
+// LoadBool from Map.
+func (a *Map) LoadBool(key string, nullable ...bool) (val bool, err error) {
+	tmp, ok := (*a)[key]
+	if !ok || tmp == nil {
+		if len(nullable) < 1 || !nullable[0] {
+			err = fmt.Errorf(mapErrFmt, ErrUndefinedValue, key)
+		}
+		return
+	}
+
+	if val, ok = tmp.(bool); !ok {
+		err = fmt.Errorf(ReadErrFmt, key, ErrInvalidType)
+	}
+
+	return
+}
+
+// LoadStringSlice obtains a []string from Claims.
+func (a *Map) LoadStringSlice(key string, nullable ...bool) (val []string, err error) {
+	tmp, ok := (*a)[key]
+	if !ok || tmp == nil {
+		if len(nullable) < 1 || !nullable[0] {
+			err = fmt.Errorf(mapErrFmt, ErrUndefinedValue, key)
+		}
+		return
+	}
+
+	logger.GetCtxEntry(context.Background()).Debugf("[]string field: %s, type: %v, value: %v", key, reflect.TypeOf(tmp), reflect.ValueOf(tmp))
+
+	if val, ok = tmp.([]string); ok {
+		return
+	}
+
+	iSlice, ok := tmp.([]any)
+	if !ok {
+		err = fmt.Errorf(ReadErrFmt, key, ErrInvalidType)
+		return
+	}
+
+	val = make([]string, len(iSlice))
 	for index := range iSlice {
-		if value[index], ok = iSlice[index].(string); !ok {
-			err = fmt.Errorf(ReadErrFmt, fieldName, ErrInvalidType)
+		if val[index], ok = iSlice[index].(string); !ok {
+			err = fmt.Errorf(ReadErrFmt, key, ErrInvalidType)
 			return
 		}
 	}
@@ -142,38 +178,81 @@ func (a *Map) LoadStringSlice(fieldName string) (value StringSlice, err error) {
 	return
 }
 
-// LoadUintSlice obtains a []uint from the Map.
-func (a *Map) LoadUintSlice(fieldName string) (value UintSlice, err error) {
-	val, ok := (*a)[fieldName]
-	if !ok || val == nil {
+// LoadUintSlice obtains a []uint from Claims.
+func (a *Map) LoadUintSlice(key string, nullable ...bool) (val []uint, err error) {
+	tmp, ok := (*a)[key]
+	if !ok || tmp == nil {
+		if len(nullable) < 1 || !nullable[0] {
+			err = fmt.Errorf(mapErrFmt, ErrUndefinedValue, key)
+		}
 		return
 	}
 
-	fLogger.Debugf("[]uint field: %s, type: %v, value: %v", fieldName, reflect.TypeOf(val), reflect.ValueOf(val))
+	logger.GetCtxEntry(context.Background()).Debugf("[]uint field: %s, type: %v, value: %v", key, reflect.TypeOf(tmp), reflect.ValueOf(tmp))
 
-	var iSlice []interface{}
-	if iSlice, ok = val.([]interface{}); !ok {
-		err = fmt.Errorf(ReadErrFmt, fieldName, ErrInvalidType)
+	if val, ok = tmp.([]uint); ok {
 		return
 	}
 
-	value = make(UintSlice, len(iSlice))
+	iSlice, ok := tmp.([]any)
+	if !ok {
+		err = fmt.Errorf(ReadErrFmt, key, ErrInvalidType)
+		return
+	}
+
+	val = make([]uint, len(iSlice))
 
 	var id float64
 	for index := range iSlice {
 		if id, ok = iSlice[index].(float64); !ok {
-			err = fmt.Errorf(ReadErrFmt, fieldName, ErrInvalidType)
+			err = fmt.Errorf(ReadErrFmt, key, ErrInvalidType)
 			return
 		}
-		value[index] = uint(id)
+		val[index] = uint(id)
 	}
 
 	return
 }
 
-// Merge a Map with the current one.
+// Merge an Map with the current one.
 func (a *Map) Merge(data Map) {
 	for k, v := range data {
 		(*a)[k] = v
 	}
+}
+
+// Encode as base64 for [Map].
+//
+// Using [map[string]any] for compatibility.
+func (a *Map) Encode(ctx context.Context) (out []byte, err error) {
+	var tmp bytes.Buffer
+	if err = gob.NewEncoder(&tmp).Encode((map[string]any)(*a)); err != nil {
+		return
+	}
+
+	buffer := tmp.Bytes()
+	out = make([]byte, base64.StdEncoding.EncodedLen(len(buffer)))
+
+	base64.StdEncoding.Encode(out, buffer)
+
+	return
+}
+
+// Decode from base64 for [Map].
+//
+// Using [map[string]any] for compatibility.
+func (a *Map) Decode(ctx context.Context, in []byte) (err error) {
+	buffer := make([]byte, base64.StdEncoding.DecodedLen(len(in)))
+	if _, err = base64.StdEncoding.Decode(buffer, in); err != nil {
+		return
+	}
+
+	tmp := map[string]any{}
+	if err = gob.NewDecoder(bytes.NewReader(buffer)).Decode(&tmp); err != nil {
+		return
+	}
+
+	*a = Map(tmp)
+
+	return
 }

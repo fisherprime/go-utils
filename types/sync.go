@@ -8,28 +8,21 @@ import (
 type (
 	// SafeCounter is a thread-safe counter.
 	SafeCounter struct {
-		mu    sync.Mutex
-		dirty int
+		val int
+		m   sync.Mutex
 	}
 )
 
 // Inc increments the counter.
 func (c *SafeCounter) Inc() {
-	c.mu.Lock()
-	defer c.mu.Unlock()
-	c.dirty++
-}
-
-// Dec decrements the counter.
-func (c *SafeCounter) Dec() {
-	c.mu.Lock()
-	defer c.mu.Unlock()
-	c.dirty--
+	c.m.Lock()
+	defer c.m.Unlock()
+	c.val++
 }
 
 // Value returns the current value of the counter.
 func (c *SafeCounter) Value() int {
-	c.mu.Lock()
-	defer c.mu.Unlock()
-	return c.dirty
+	c.m.Lock()
+	defer c.m.Unlock()
+	return c.val
 }
