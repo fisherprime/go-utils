@@ -19,8 +19,8 @@ import (
 //
 //		for index :=0; index < numGoroutines; index++ {
 //			go func() {
+//				defer wg.Done()
 //				if err := someFunc(); err != nil {errChan <- err}
-//				wg.Done()
 //			}()
 //		}
 //

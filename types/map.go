@@ -8,11 +8,12 @@ import (
 	"encoding/gob"
 	"errors"
 	"fmt"
+	"log/slog"
 	"reflect"
 )
 
 type (
-	// Map is a wrapper on the map[string]interface{} type.
+	// Map is a wrapper on the map[string]any type.
 	Map map[string]any
 )
 
@@ -52,12 +53,6 @@ func (a *Map) Get(key string) (out string, ok bool) {
 		out = fmt.Sprint(val)
 	}
 
-	return
-}
-
-// LoadInterface from Map.
-func (a *Map) LoadInterface(key string) (out any, ok bool) {
-	out, ok = (*a)[key]
 	return
 }
 
@@ -155,7 +150,7 @@ func (a *Map) LoadStringSlice(key string, nullable ...bool) (val []string, err e
 		return
 	}
 
-	logger.GetCtxEntry(context.Background()).Debugf("[]string field: %s, type: %v, value: %v", key, reflect.TypeOf(tmp), reflect.ValueOf(tmp))
+	slog.Debug("LoadStringSlice", "field", key, "type", reflect.TypeOf(tmp), "value", reflect.ValueOf(tmp))
 
 	if val, ok = tmp.([]string); ok {
 		return
@@ -188,7 +183,7 @@ func (a *Map) LoadUintSlice(key string, nullable ...bool) (val []uint, err error
 		return
 	}
 
-	logger.GetCtxEntry(context.Background()).Debugf("[]uint field: %s, type: %v, value: %v", key, reflect.TypeOf(tmp), reflect.ValueOf(tmp))
+	slog.Debug("LoadUintSlice", "field", key, "type", reflect.TypeOf(tmp), "value", reflect.ValueOf(tmp))
 
 	if val, ok = tmp.([]uint); ok {
 		return

@@ -1,3 +1,3 @@
 module gitlab.com/fisherprime/go-utils
 
-go 1.20
+go 1.21
