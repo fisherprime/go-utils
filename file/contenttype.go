@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-package files
+package file
 
 import (
 	"errors"
@@ -9,10 +9,11 @@ import (
 )
 
 const (
-	// sniffLen defines the length of content to be read from a file to sniff the content type.
+	// mimeSniffLength is the number of bytes necessary to determine a file's content type by
+	// `http.DetectContentType`.
 	//
 	// REF: net/http/sniff.go
-	sniffLen = 512
+	mimeSniffLength = 512
 )
 
 // Content type detection errors.
@@ -23,11 +24,12 @@ var (
 // GetFileContentType retreives the content-type of a file.
 //
 // Uses `http.DetectContentType` to sniff the content-type from a file.
-func GetFileContentType(out *os.File) (contentType string, err error) {
-	buffer := make([]byte, sniffLen)
+func GetFileContentType(file *os.File) (contentType string, err error) {
+	buffer := make([]byte, mimeSniffLength)
 
-	if _, err = out.Read(buffer); err != nil {
-		err = fmt.Errorf("%w: %v", ErrObtainContentType, err)
+	if _, err = file.Read(buffer); err != nil {
+		err = fmt.Errorf("%w: %w", ErrObtainContentType, err)
+
 		return
 	}
 

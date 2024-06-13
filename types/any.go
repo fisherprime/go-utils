@@ -11,7 +11,6 @@ func AppendToAny(src, dst any) (err error) {
 	if err != nil {
 		return
 	}
-	err = json.Unmarshal(buffer, dst)
 
-	return
+	return json.Unmarshal(buffer, dst)
 }

@@ -10,10 +10,10 @@ import (
 // Slice is a wrapper on [slice] for [cmp.Ordered] values.
 //
 // swagger:model [slice]
-type Slice[V cmp.Ordered] []V
+type Slice[T cmp.Ordered] []T
 
 // Locate for [Slice].
-func (sl *Slice[V]) Locate(val V) (loc int) {
+func (sl *Slice[T]) Locate(val T) (loc int) {
 	loc = -1
 
 	for index := range *sl {
@@ -27,7 +27,7 @@ func (sl *Slice[V]) Locate(val V) (loc int) {
 }
 
 // String is the [fmt.Stringer] implementation for [Slice].
-func (sl *Slice[V]) String() (dst string) {
+func (sl *Slice[T]) String() (dst string) {
 	lenSl := len(*sl)
 	if lenSl < 1 {
 		return
@@ -46,8 +46,8 @@ func (sl *Slice[V]) String() (dst string) {
 }
 
 // ToCache for [Slice].
-func (sl *Slice[V]) ToCache() (cache map[V]struct{}) {
-	cache = make(map[V]struct{})
+func (sl *Slice[T]) ToCache() (cache map[T]struct{}) {
+	cache = make(map[T]struct{})
 	for _, val := range *sl {
 		cache[val] = struct{}{}
 	}
@@ -56,7 +56,7 @@ func (sl *Slice[V]) ToCache() (cache map[V]struct{}) {
 }
 
 // Append for [Slice].
-func (sl *Slice[V]) Append(values ...V) {
+func (sl *Slice[T]) Append(values ...T) {
 	if len(values) < 1 {
 		return
 	}
@@ -67,25 +67,25 @@ func (sl *Slice[V]) Append(values ...V) {
 }
 
 // Prepend to [Slice].
-func (sl *Slice[V]) Prepend(values ...V) {
+func (sl *Slice[T]) Prepend(values ...T) {
 	if len(values) < 1 {
 		return
 	}
 
 	for index := range values {
-		*sl = append(Slice[V]{values[index]}, *sl...)
+		*sl = append(Slice[T]{values[index]}, *sl...)
 	}
 }
 
 // UniqueAppend for [Slice].
-func (sl *Slice[V]) UniqueAppend(values ...V) (appended []V) {
+func (sl *Slice[T]) UniqueAppend(values ...T) (appended []T) {
 	if len(values) < 1 {
 		return
 	}
 
 	cache := sl.ToCache()
 
-	appended = Slice[V]{}
+	appended = Slice[T]{}
 	for index := range values {
 		newVal := values[index]
 		if _, ok := cache[newVal]; ok {
@@ -101,21 +101,21 @@ func (sl *Slice[V]) UniqueAppend(values ...V) (appended []V) {
 }
 
 // UniquePrepend to [Slice].
-func (sl *Slice[V]) UniquePrepend(values ...V) (prepended []V) {
+func (sl *Slice[T]) UniquePrepend(values ...T) (prepended []T) {
 	if len(values) < 1 {
 		return
 	}
 
 	cache := sl.ToCache()
 
-	prepended = Slice[V]{}
+	prepended = Slice[T]{}
 	for index := range values {
 		newVal := values[index]
 		if _, ok := cache[newVal]; ok {
 			continue
 		}
 
-		*sl = append(Slice[V]{newVal}, *sl...)
+		*sl = append(Slice[T]{newVal}, *sl...)
 		prepended = append(prepended, newVal)
 		cache[newVal] = struct{}{}
 	}
@@ -124,13 +124,13 @@ func (sl *Slice[V]) UniquePrepend(values ...V) (prepended []V) {
 }
 
 // Pop from [Slice].
-func (sl *Slice[V]) Pop(index int) {
+func (sl *Slice[T]) Pop(index int) {
 	base := index
 	upper := index + 1
 	if base < 1 {
 		// NOTE: Availed for clarity, using the length before the colon will yield an empty slice.
 		if upper >= len(*sl) {
-			*sl = Slice[V]{}
+			*sl = Slice[T]{}
 			return
 		}
 
@@ -142,7 +142,7 @@ func (sl *Slice[V]) Pop(index int) {
 }
 
 // PopValues from [Slice].
-func (sl *Slice[V]) PopValues(values ...V) {
+func (sl *Slice[T]) PopValues(values ...T) {
 	lenValues := len(values)
 	switch {
 	case lenValues < 1, len(*sl) < 1:
@@ -161,7 +161,7 @@ func (sl *Slice[V]) PopValues(values ...V) {
 	}
 
 	lenCache := len(cache)
-	newSl := make(Slice[V], lenCache)
+	newSl := make(Slice[T], lenCache)
 
 	if lenCache > 0 {
 		for newIndex, index := 0, 0; index < lenCache; index++ {
@@ -179,6 +179,6 @@ func (sl *Slice[V]) PopValues(values ...V) {
 }
 
 // Sort for [Slice].
-func (sl *Slice[V]) Sort() {
+func (sl *Slice[T]) Sort() {
 	sort.Slice(*sl, func(i, j int) bool { return (*sl)[i] < (*sl)[j] })
 }

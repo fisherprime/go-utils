@@ -1,7 +1,7 @@
-// Package utils implements miscellaneous utilities.
+// Package util implements miscellaneous utilities.
 //
 // SPDX-License-Identifier: MIT
-package utils
+package util
 
 import (
 	"errors"

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-package utils
+package util
 
 import (
 	"math/rand"
