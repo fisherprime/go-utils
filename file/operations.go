@@ -12,7 +12,8 @@ import (
 )
 
 const (
-	defaultPerm = 0o600
+	defaultFilePerm = 0o600
+	defaultDirPerm  = 0o700
 )
 
 // File operation errors.
@@ -63,11 +64,11 @@ func WriteFile(ctx context.Context, filePath string, data []byte) (err error) {
 	case <-ctx.Done():
 		err = ctx.Err()
 	default:
-		if err = os.MkdirAll(path.Dir(filePath), defaultPerm); err != nil {
+		if err = os.MkdirAll(path.Dir(filePath), defaultDirPerm); err != nil {
 			return fmt.Errorf("%w: %v", ErrCreateDirHierarchy, err)
 		}
 
-		if err = os.WriteFile(filePath, data, defaultPerm); err != nil {
+		if err = os.WriteFile(filePath, data, defaultFilePerm); err != nil {
 			err = fmt.Errorf("%w (%s)", err, filePath)
 		}
 	}
