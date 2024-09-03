@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-// Slice is a wrapper on [slice] for [cmp.Ordered] values.
+// Slice is a type wrapper for []T where T satisfies the cmp.Ordered constraint.
 //
 // swagger:model [slice]
 type Slice[T cmp.Ordered] []T

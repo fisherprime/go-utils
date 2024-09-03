@@ -3,9 +3,9 @@ package types
 
 import "encoding/json"
 
-// AppendToAny using the lazy approach.
+// AppendToAny using json.Marshal & json.Unmarshal (lazy approach).
 //
-// Expects a pointer to a type for the destination.
+// Expects a pointer as the destination.
 func AppendToAny(src, dst any) (err error) {
 	buffer, err := json.Marshal(src)
 	if err != nil {

@@ -8,7 +8,6 @@ import (
 )
 
 const (
-
 	// randStringAlphabet contains the alphabet used in generating the random string.
 	randStringAlphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._~"
 
